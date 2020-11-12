@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Button, Avatar, makeStyles, Modal, Input } from "@material-ui/core";
+import { Button, Avatar, makeStyles, Modal, Input, Tooltip, IconButton } from "@material-ui/core";
+import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import AddAPhotoIcon from '@material-ui/icons/AddAPhoto';
 import { auth } from "../../firebase";
 import './Header.scss';
-
+import ImageUpload from "../ImageUpload/ImageUpload";
 
 function getModalStyle() {
   const top = 50;
@@ -37,12 +39,13 @@ function Header() {
   const [user, setUser] = useState(null);
   const [open, setOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
+  const [imgUploadOpen, setImgUploadOpen] = useState(false);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((authUser) => {
       if (authUser) {
         // user is logged in...
-        console.log(authUser);
+        // console.log(authUser);
         setUser(authUser);
 
         if (authUser.displayName) {
@@ -53,15 +56,16 @@ function Header() {
           });
         }
       } else {
+        // user is logged out...
         setUser(null);
       }
     });
 
     return () => {
+      // perform some cleanup actions 
       unsubscribe();
     };
   }, [user, username]);
-
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -83,6 +87,9 @@ function Header() {
 
   return (
     <div>
+      {/* <div className="app__upload">
+        <ImageUpload username={user?.displayName} />
+      </div> */}
       <Modal open={open} onClose={() => setOpen(false)}>
         <div style={modalStyle} className={classes.paper}>
           <form className="app__login">
@@ -144,6 +151,16 @@ function Header() {
         </div>
       </Modal>
 
+      <Modal open={imgUploadOpen} onClose={() => setImgUploadOpen(false)}>
+        <div style={modalStyle} className={classes.paper}>
+          <form className="app__login">
+            <div className="app__upload">
+              <ImageUpload username={user?.displayName} />
+            </div>
+          </form>
+        </div>
+      </Modal>
+
       <div className="app__header">
         <img
           className="app__headerImage"
@@ -152,7 +169,16 @@ function Header() {
         />
         {user?.displayName ?
           (<div className="app__headerRight">
-            <Button onClick={() => auth.signOut()}>Logout</Button>
+            <Tooltip title="Add Caption">
+              <IconButton>
+                <AddAPhotoIcon onClick={() => setImgUploadOpen(true)} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Logout">
+              <IconButton onClick={() => auth.signOut()}>
+                <ExitToAppIcon />
+              </IconButton>
+            </Tooltip>
             <Avatar
               className="app__headerAvatar"
               alt={user.displayName}
@@ -167,7 +193,7 @@ function Header() {
           )
         }
       </div>
-    </div>
+    </div >
   )
 }
 
